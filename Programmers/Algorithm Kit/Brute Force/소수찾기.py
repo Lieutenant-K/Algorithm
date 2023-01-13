@@ -1,5 +1,4 @@
 import itertools
-
 def solution(numbers):
     n = len(numbers)
     elements = set()
