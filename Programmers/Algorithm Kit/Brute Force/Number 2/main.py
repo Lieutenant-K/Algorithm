@@ -1,27 +1,11 @@
-from itertools import permutations
-
-m = 10 ** 7
-p = [True for i in range(m)]
-p[0] = p[1] = False
-for i in range(2, int(m ** 0.5) + 1):
-    if p[i]:
-        j = 2
-        while i * j < m:
-            p[i * j] = False
-            j += 1
-
+import itertools
 
 def solution(numbers):
-    answer = 0
-    primary = set([])
-
-    length = len(numbers)
-    for cnt in range(1, length + 1):
-        permutation = set(permutations(numbers, cnt))
-        for number in permutation:
-            num = int(''.join(number))
-            if p[num]:
-                primary.add(num)
-
-    answer = len(primary)
-    return answer
+    n = len(numbers)
+    elements = set()
+    for i in range(1, n+1):
+        elements |= set(map(int, map("".join, itertools.permutations(numbers, i))))
+    for i in range(2, int(max(elements)**0.5)+1):
+        elements -= set(range(i*2, max(elements)+1, i))
+    elements -= {0, 1}
+    return len(elements)
