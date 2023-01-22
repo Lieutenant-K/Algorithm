@@ -1,16 +1,17 @@
-def dfs(airport, route, remain_tickets, result):
-    if len(remain_tickets) == 0:
-        result.append(route)
-    for start, end in remain_tickets:
-        if airport == start:
-            rt = remain_tickets[:]
-            rt.remove([start, end])
-            path = route[:]
-            path.append(end)
-            dfs(end, path, rt, result)
+from collections import defaultdict
+def dfs(route, tickets, answer):
+    if sum([len(array) for array in tickets.values()]) == 0:
+        answer.append(route)
+    current = route[-1]
+    remain = tickets[current]
+    for i in range(len(remain)):
+        dic = tickets.copy()
+        dic[current] = remain[:i] + remain[i+1:]
+        dfs(route+[remain[i]], dic, answer)
 
 def solution(tickets):
-    answer = []
-    dfs("ICN", ["ICN"], tickets, answer)
-    answer.sort()
+    dic, answer = defaultdict(list), []
+    for start, end in sorted(tickets):
+        dic[start].append(end)
+    dfs(["ICN"], dic, answer)
     return answer[0]
