@@ -1,63 +1,53 @@
 from collections import deque
 
-def rotate(arr):
-    return [list(i)[-1::-1] for i in list(zip(*arr))]
-
-
-def bfs(arr, a, b, v):
+def find_puzzle(graph, value, i, j):
     dx, dy = [1, -1, 0, 0], [0, 0, 1, -1]
-    q = deque([(a, b)])
-    arr[a][b] = 2
-    puzzle = []
-    puzzle.append((0, 0))
-    while q:
-        x, y = q.popleft()
-        for i in range(4):
-            nx, ny = x + dx[i], y + dy[i]
-            if 0 <= nx < len(arr) and 0 <= ny < len(arr) and arr[nx][ny] == v:
-                arr[nx][ny] = 2
-                q.append((nx, ny))
-                puzzle.append((nx - a, ny - b))
+    n = len(graph)
+    puzzle, queue = [(0, 0)], deque([(i, j)])
+    graph[i][j] = int(not value)
+    while queue:
+        x, y = queue.popleft()
+        for k in range(4):
+            nx, ny = x + dx[k], y + dy[k]
+            if 0 <= nx < n and 0 <= ny < n and graph[nx][ny] == value:
+                graph[nx][ny] = int(not value)
+                queue.append((nx, ny))
+                puzzle.append((nx - i, ny - j))
     return puzzle
 
 
+def bfs(graph, value):
+    n = len(graph)
+    return [find_puzzle(graph, value, i, j) for i in range(n) for j in range(n) if graph[i][j] == value]
+
 def solution(game_board, table):
-    answer = 0
-    n = len(table)
-    puzzles = []
-    for x in range(n):
-        for y in range(n):
-            if table[x][y] == 1:
-                puzzles.append(bfs(table, x, y, 1))
+    puzzles = bfs(table, True)
+    empties = bfs(game_board, False)
+    variations, used, answer = [], [], 0
 
-    puzzle_shapes = [[] for _ in range(len(puzzles))]
-    for i in range(len(puzzles)):
-        puzzle_shapes[i].append(puzzles[i])
-        mx, my = list(zip(*puzzles[i]))
-        m = max(max(mx)-min(mx)+1, max(my)-min(my)+1)
-        rect = [[0]*m for _ in range(m)]
-        for x, y in puzzles[i]:
-            rect[x-min(mx)][y-min(my)] = 1
+    for puzzle in puzzles:
+        min_y = min(map(lambda x: x[1], puzzle))
+        puzzle = list(map(lambda x: (x[0], x[1] + abs(min_y)), puzzle))
+        m = max(map(max, *zip(*puzzle)))
+        space = [[0] * (m + 1) for _ in range(m + 1)]
 
-        rotate_list = [rect, rotate([k[:] for k in rect]), rotate([k[:] for k in rotate([k[:] for k in rect])])]
-        for r in rotate_list:
-            rotate_rect = rotate([k[:] for k in r])
-            for x in range(m):
-                for y in range(m):
-                    if rotate_rect[x][y] == 1:
-                        puzzle_shapes[i].append(bfs(rotate_rect, x, y, 1))
+        for a, b in puzzle:
+            space[a][b] = 1
 
-    use = [False] * len(puzzles)
-    for x in range(n):
-        for y in range(n):
-            if game_board[x][y] == 0:
-                space = bfs(game_board, x, y, 0)
-                for i in range(len(puzzles)):
-                    if not use[i] and space in puzzle_shapes[i]:
-                        for a, b in space:
-                            game_board[x+a][y+b] = 1
-                        use[i] = True
-                        answer += len(space)
-                        break
-    # print(game_board)
+        var = []
+        for i in range(4):
+            variation = bfs([row[:] for row in space], True)
+            var.append(variation[0])
+            space = [list(array[::-1]) for array in list(zip(*space))]
+        variations.append(var)
+
+    for empty in empties:
+        for i, var in enumerate(variations):
+            if i in used:
+                continue
+            if set(empty) in list(map(set, var)):
+                used.append(i)
+                answer += len(empty)
+                break
+
     return answer
