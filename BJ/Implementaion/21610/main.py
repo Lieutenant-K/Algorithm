@@ -1,51 +1,40 @@
 import sys
-import pprint
 input = sys.stdin.readline
 
-def move(d, dis, cl, v):
-    for i in cl:
+N, M = map(int, input().split())
+A = [list(map(int, input().split())) for _ in range(N)]
+op = [tuple(map(int, input().split())) for _ in range(M)]
+dx, dy = [0, 0, -1, -1, -1, 0, 1, 1, 1], [0, -1, -1, 0, 1, 1, 1, 0, -1]
+cloud = [(N-1, 0), (N-1, 1), (N-2, 0), (N-2, 1)]
 
-        i[0] = (i[0] + dis * dx[d]) % n
-        i[1] = (i[1] + dis * dy[d]) % n
+for d, s in op:
+    nc = []
+    for cx, cy in cloud:
+        ncx, ncy = cx + s * dx[d], cy + s * dy[d]
+        if ncx < 0 or ncx >= N:
+            ncx = (ncx + N) % N
+        if ncy < 0 or ncy >= N:
+            ncy = (ncy + N) % N
+        nc.append((ncx, ncy))
 
-        if i[0] < 0:
-            i[0] += n
-        if i[1] < 0:
-            i[1] += n
+    for x, y in nc:
+        A[x][y] += 1
 
-        v[i[0]][i[1]] = False
-        s[i[0]][i[1]] += 1
-
-def bug(cl):
-    ndx, ndy = [-1, 1, -1, 1], [1, 1, -1, -1]
-    for x, y in cl:
+    for x, y in nc:
         cnt = 0
-        for i in range(4):
-            nx, ny = x + ndx[i], y + ndy[i]
-            if nx < 0 or ny < 0 or nx > n-1 or ny > n-1:
-                continue
-            if s[nx][ny] > 0:
+        for i in range(1, 5):
+            nx, ny = x + dx[2 * i], y + dy[2 * i]
+            if 0 <= nx < N and 0 <= ny < N and A[nx][ny] > 0:
                 cnt += 1
-        s[x][y] += cnt
+        A[x][y] += cnt
+    
+    nc = set(nc)
+    cloud = []
+    for x in range(N):
+        for y in range(N):
+            if A[x][y] > 1 and (x, y) not in nc:
+                cloud.append((x, y))
+                A[x][y] -= 2
 
-def cloud(v):
-    r = []
-    for i in range(n):
-        for j in range(n):
-            if s[i][j] >= 2 and v[i][j]:
-                r.append([i, j])
-                s[i][j] -= 2
-    return r
-
-n, m = map(int, input().split())
-s = [list(map(int, input().split())) for _ in range(n)]
-dx, dy = [0, -1, -1, -1, 0, 1, 1, 1], [-1, -1, 0, 1, 1, 1, 0, -1]
-c = [[n-1, 0], [n-1, 1], [n-2, 0], [n-2, 1]]
-
-for _ in range(m):
-    visit = [[True] * n for _ in range(n)]
-    di, si = map(int, input().split())
-    move(di-1, si, c, visit)
-    bug(c)
-    c = cloud(visit)
-print(sum([sum(i) for i in s]))
+r = sum([A[x][y] for x in range(N) for y in range(N)])
+print(r)
