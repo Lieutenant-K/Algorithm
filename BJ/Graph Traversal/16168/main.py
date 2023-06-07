@@ -1,26 +1,25 @@
 import sys
-from sys import stdin
-sys.setrecursionlimit(10**5)
+input = sys.stdin.readline
+sys.setrecursionlimit(10**4)
+
+V, E = map(int, input().split())
+G = [set() for _ in range(V+1)]
+for _ in range(E):
+    a, b = map(int, input().split())
+    G[a].add(b)
+    G[b].add(a)
+d = len([i for i in range(1, V+1) if len(G[i]) % 2 != 0])
 
 def dfs(x):
-    for v in g[x]:
-        if v not in visit:
-            visit.add(v)
+    for v in G[x]:
+        if not visit[v]:
+            visit[v] = True
             dfs(v)
 
-v, e = map(int, stdin.readline().split(" "))
-g = [set() for _ in range(v)]
-for _ in range(e):
-    a, b = map(int, stdin.readline().split(" "))
-    g[a-1].add(b-1)
-    g[b-1].add(a-1)
-visit = set()
-dfs(0)
-if visit == set(range(v)):
-    degree = list(map(lambda x: True if len(x) % 2 == 0 else False, g))
-    if degree.count(False) == 2 or False not in degree:
-        print("YES")
-    else:
-        print("NO")
+visit = [False]*(V+1)
+dfs(1)
+
+if False not in visit[1:] and (d == 0 or d == 2):
+    print("YES")
 else:
     print("NO")
